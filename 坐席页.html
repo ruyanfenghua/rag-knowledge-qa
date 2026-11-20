@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作台 · 云策</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/vendor/antd.min.css">
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  html,body{height:100%;overflow:hidden;}
+  body{display:flex;flex-direction:column;background:var(--bg-page);}
+
+  /* 顶栏：一根下边框，右侧只放状态与图标 */
+  .top{height:56px;flex:0 0 56px;display:flex;align-items:center;gap:14px;padding:0 20px;
+    background:var(--bg);border-bottom:1px solid var(--line-2);}
+  .top .brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--text);}
+  .top .brand svg{color:var(--brand);}
+  .top .div{width:1px;height:16px;background:var(--line);}
+  .top .cur{font-size:14px;color:var(--text-2);}
+  .top .right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+  .top .stat{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);}
+  .top .stat i{width:6px;height:6px;border-radius:50%;background:var(--ok);display:block;}
+  .top .me{width:30px;height:30px;border-radius:50%;background:var(--bg-fill);color:var(--text-2);
+    display:flex;align-items:center;justify-content:center;}
+
+  /* 三栏 */
+  .main{flex:1;display:flex;min-height:0;}
+
+  /* 左：会话列表 */
+  .col-list{width:272px;flex:0 0 272px;background:var(--bg);border-right:1px solid var(--line-2);
+    display:flex;flex-direction:column;min-height:0;}
+  .col-list .search{padding:12px;}
+  .col-list .search .ant-input{background:var(--bg-page);}
+  .col-list .scroll{flex:1;overflow-y:auto;min-height:0;}
+  .grp{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 6px;
+    font-size:12px;color:var(--text-3);}
+  .grp b{font-weight:400;color:var(--text-3);}
+  .grp span{color:var(--text-3);}
+
+  .litem{padding:11px 16px;border-bottom:1px solid var(--line-2);cursor:pointer;transition:background .15s;}
+  .litem:hover{background:var(--bg-fill);}
+  .litem.on{background:var(--brand-bg);}
+  .litem .lt{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+  .litem .ln{font-size:13px;font-weight:500;color:var(--text);}
+  .litem .ltt{font-size:12px;color:var(--text-3);flex:none;}
+  .litem .lb{display:flex;align-items:center;gap:8px;margin-top:4px;}
+  .litem .lp{flex:1;min-width:0;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .litem .ls{flex:none;padding:0 6px;height:18px;line-height:16px;font-size:11px;
+    color:var(--text-2);background:var(--bg-fill);border:1px solid var(--line-2);border-radius:var(--radius);}
+
+  .qi{padding:9px 16px;font-size:12px;color:var(--text-2);cursor:pointer;border-bottom:1px solid var(--line-2);}
+  .qi:hover{background:var(--bg-fill);}
+  .qi:empty{display:none;}
+
+  /* 中：对话 */
+  .col-chat{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg-page);}
+  .chat-head{height:56px;flex:0 0 56px;display:flex;align-items:center;gap:10px;padding:0 20px;
+    background:var(--bg);border-bottom:1px solid var(--line-2);}
+  .chat-head .av{width:32px;height:32px;border-radius:50%;background:var(--brand-bg);color:var(--brand);
+    display:flex;align-items:center;justify-content:center;flex:0 0 32px;}
+  .chat-head b{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;}
+  .chat-head i{display:block;font-style:normal;font-size:12px;color:var(--text-3);line-height:1.3;}
+  .chat-head .ops{margin-left:auto;}
+
+  .col-chat #thread{flex:1;min-height:0;background:var(--bg-page);padding:20px;}
+
+  .compose{flex:0 0 auto;background:var(--bg);border-top:1px solid var(--line-2);padding:12px 16px;}
+  .compose .quick{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .compose .quick button{font-size:12px;height:24px;padding:0 9px;line-height:22px;
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);
+    color:var(--text-2);cursor:pointer;font-family:inherit;}
+  .compose .quick button:hover{color:var(--brand);border-color:var(--brand-border);}
+  .compose .row{display:flex;gap:8px;}
+
+  /* 右：客户资料 */
+  .col-side{width:300px;flex:0 0 300px;background:var(--bg);border-left:1px solid var(--line-2);
+    display:flex;flex-direction:column;min-height:0;}
+  .pane-title{height:56px;flex:0 0 56px;display:flex;align-items:center;padding:0 16px;
+    border-bottom:1px solid var(--line-2);font-size:14px;font-weight:600;color:var(--text);}
+  .profile{display:flex;align-items:center;gap:12px;padding:16px 16px 12px;}
+  .pf-av{width:40px;height:40px;flex:0 0 40px;border-radius:50%;background:var(--brand-bg);color:var(--brand);
+    display:flex;align-items:center;justify-content:center;}
+  .pf-meta{min-width:0;}
+  .pf-meta b{display:block;font-size:15px;font-weight:600;color:var(--text);line-height:1.4;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pf-meta span{display:block;font-size:12px;color:var(--text-3);line-height:1.5;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tags{padding:0 16px 14px;border-bottom:1px solid var(--line-2);}
+  .tags span{display:inline-block;margin:0 6px 4px 0;padding:0 7px;height:20px;line-height:18px;
+    font-size:12px;color:var(--brand);background:var(--brand-bg);
+    border:1px solid var(--brand-border);border-radius:var(--radius);}
+  .dl{flex:1;min-height:0;margin:0;padding:6px 16px 20px;overflow-y:auto;}
+  .dl .row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:13px;}
+  .dl .row:last-child{border-bottom:0;}
+  .dl dt{width:56px;flex:0 0 56px;color:var(--text-3);}
+  .dl dd{margin:0;color:var(--text);word-break:break-word;line-height:1.6;}
+
+  @media (max-width:1100px){
+    .col-side{display:none;}
+  }
+  @media (max-width:860px){
+    .col-list{width:220px;flex-basis:220px;}
+  }
+</style>
+</head>
+<body data-view="agent">
+
+<header class="top">
+  <span class="brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.3-.6L4 20.5l1.3-4A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"/></svg>
+    云策
+  </span>
+  <span class="div"></span>
+  <span class="cur">工作台</span>
+  <div class="right">
+    <span class="stat"><i id="agent-dot"></i><span id="agent-state">正在连</span></span>
+    <span class="me">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </span>
+  </div>
+</header>
+
+<div class="main">
+
+  <aside class="col-list">
+    <div class="search">
+      <input id="agent-search" class="ant-input" placeholder="找人，或找一句话" oninput="filterChats(this.value)">
+    </div>
+    <div class="scroll">
+      <div class="grp"><b>正在聊</b><span id="n-active">0</span></div>
+      <div id="chatlist"></div>
+      <div class="grp"><b>等着接</b><span id="n-queue">0</span></div>
+      <div id="queuelist"></div>
+    </div>
+  </aside>
+
+  <section class="col-chat">
+    <div class="chat-head">
+      <span class="av" id="peer-av">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <span>
+        <b id="peer-name">—</b>
+        <i id="peer-sub">—</i>
+      </span>
+      <div class="ops">
+        <button class="ant-btn" onclick="endChat()">结束这轮</button>
+      </div>
+    </div>
+    <div id="thread"></div>
+    <div class="compose">
+      <div class="quick">
+        <button onclick="fillReply('审核完之后一到三个工作日，钱会退回原来那张卡。')">退款进度</button>
+        <button onclick="fillReply('开专票要把开票信息补全，我们审完三个工作日寄出。')">开发票</button>
+        <button onclick="fillReply('五十人以内一台机器足够，八核十六G，装常见 Linux 就行。')">服务器</button>
+      </div>
+      <div class="row">
+        <input id="q" class="ant-input" placeholder="写回复，按回车发出" onkeydown="if(event.key==='Enter')run()">
+        <button id="btn" class="ant-btn ant-btn-primary" onclick="run()">发出</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="col-side">
+    <div class="pane-title">访客信息</div>
+    <div class="profile">
+      <span class="pf-av">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </span>
+      <div class="pf-meta">
+        <b id="sidebar-name">—</b>
+        <span id="sidebar-company">—</span>
+      </div>
+    </div>
+    <div class="tags" id="sidebar-tags">—</div>
+    <dl class="dl">
+      <div class="row"><dt>渠道</dt><dd id="sidebar-visits">—</dd></div>
+      <div class="row"><dt>负责人</dt><dd id="side-host">—</dd></div>
+      <div class="row"><dt>备注</dt><dd id="sidebar-memo">—</dd></div>
+      <div class="row"><dt>在聊</dt><dd><span id="n-active2">0</span> 个</dd></div>
+    </dl>
+  </aside>
+
+</div>
+
+<div id="toast"></div>
+<script src="assets/app.js"></script>
+</body>
+</html>
