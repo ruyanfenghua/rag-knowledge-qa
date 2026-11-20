@@ -1,7 +1,7 @@
 /*
- * 评测脚本：在真实页面里跑检索侧与生成侧，结果写进 评测结果.json。
- * 用法：node eval/评测脚本.js <临时目录> <页面副本路径> eval/评测结果.json
- * 依赖：本机 Chrome、Node 18+（用到全局 WebSocket）、8890 代理在跑。
+ * 评测脚本：在运维页面里跑检索侧与生成侧，结果写进 评测结果.json。
+ * 用法：node eval/评测脚本.js <临时目录> <运维页.html 路径> eval/评测结果.json
+ * 依赖：本机 Chrome、Node 18+（用到全局 WebSocket）、服务端在跑。
  */
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -44,7 +44,6 @@ async function ev(expr, awaitPromise = true) {
 function askExpr(q, doReset) {
   return `(async()=>{
     ${doReset ? 'resetThread();' : ''}
-    setView('client');
     const inp=document.getElementById('q');
     inp.value=${JSON.stringify(q)};
     const t0=Date.now(); let err='';
