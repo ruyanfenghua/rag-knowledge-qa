@@ -1,6 +1,6 @@
 /*
- * 截图脚本：截客户侧、坐席工作台、运维调试三张界面图。
- * 用法：node scripts/截图.js <临时目录> <页面副本路径> docs/images
+ * 截图脚本：分别打开客户、坐席、运维三个页面截图。
+ * 用法：node scripts/截图.js <临时目录> <页面所在目录> docs/images
  */
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -8,7 +8,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 
 const TMP = process.argv[2];
-const PAGE = process.argv[3];
+const DIR = process.argv[3];
 const OUT = process.argv[4];
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const PORT = 9336;
@@ -17,7 +17,7 @@ const chrome = spawn(CHROME, [
   '--headless=new', '--no-first-run', '--no-default-browser-check',
   '--remote-debugging-port=' + PORT, '--user-data-dir=' + path.join(TMP, 'profile2'),
   '--allow-file-access-from-files', '--window-size=1440,900', '--disable-gpu',
-  pathToFileURL(PAGE).href
+  'about:blank'
 ], { stdio: 'ignore' });
 const watchdog = setTimeout(() => { console.error('总超时'); try { chrome.kill(); } catch (e) {} process.exit(2); }, 180000);
 
@@ -34,12 +34,18 @@ async function ev(expr) {
   return r.result && r.result.value;
 }
 
+const shots = [
+  ['客户页.html', '客户侧.png'],
+  ['坐席页.html', '坐席工作台.png'],
+  ['运维页.html', '运维调试.png']
+];
+
 (async () => {
   let target = null;
   for (let i = 0; i < 80; i++) {
     try {
       const list = await fetch('http://127.0.0.1:' + PORT + '/json/list').then(r => r.json());
-      target = list.find(t => t.type === 'page' && t.url.indexOf(path.basename(PAGE)) >= 0);
+      target = list.find(t => t.type === 'page');
       if (target) break;
     } catch (e) {}
     await sleep(400);
@@ -56,19 +62,23 @@ async function ev(expr) {
   };
   await send('Runtime.enable');
   await send('Page.enable');
-  for (let i = 0; i < 120; i++) {
-    const v = await ev("(()=>{try{return document.readyState==='complete' && typeof setView==='function'}catch(e){return false}})()");
-    if (v === true) break; await sleep(500);
-  }
   fs.mkdirSync(OUT, { recursive: true });
-  const shots = [
-    ['client', '客户侧.png'],
-    ['agent', '坐席工作台.png'],
-    ['admin', '运维调试.png']
-  ];
-  for (const [v, name] of shots) {
-    await ev("(()=>{setView('" + v + "');switchChat('c1');renderThread();renderChatList();updateSide();scrollThread();return 1})()");
-    await sleep(3000);
+
+  for (const [file, name] of shots) {
+    const url = pathToFileURL(path.join(DIR, file)).href;
+    await send('Page.navigate', { url });
+    for (let i = 0; i < 120; i++) {
+      const v = await ev("(()=>{try{return document.readyState==='complete' && typeof run==='function'}catch(e){return false}})()");
+      if (v === true) break;
+      await sleep(400);
+    }
+    await sleep(1500);
+    if (file === '客户页.html') {
+      await ev("(()=>{document.getElementById('q').value='退款多久到账';run();return 1})()");
+      await sleep(3500);
+    }
+    await ev("(()=>{switchChat('c1');renderThread();renderChatList();updateSide();scrollThread();return 1})()");
+    await sleep(500);
     const r = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     fs.writeFileSync(path.join(OUT, name), Buffer.from(r.data, 'base64'));
     console.log('已截', name);
