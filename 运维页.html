@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资料维护 · 云策</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/vendor/antd.min.css">
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  html,body{height:100%;overflow:hidden;}
+  body{display:flex;flex-direction:column;background:var(--bg-page);}
+
+  .top{height:56px;flex:0 0 56px;display:flex;align-items:center;gap:14px;padding:0 20px;
+    background:var(--bg);border-bottom:1px solid var(--line-2);}
+  .top .brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--text);}
+  .top .brand svg{color:var(--brand);}
+  .top .div{width:1px;height:16px;background:var(--line);}
+  .top .cur{font-size:14px;color:var(--text-2);}
+  .top .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);}
+  .top .stat{display:flex;align-items:center;gap:6px;}
+  .top .db{color:var(--text-3);}
+  .top .stat i{width:6px;height:6px;border-radius:50%;background:var(--ok);display:block;}
+
+  .main{flex:1;display:flex;min-height:0;}
+
+  /* 左：文档列表 */
+  .col-doc{width:240px;flex:0 0 240px;background:var(--bg);border-right:1px solid var(--line-2);
+    display:flex;flex-direction:column;min-height:0;}
+  .pane-head{height:48px;flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 16px;border-bottom:1px solid var(--line-2);font-size:13px;font-weight:600;color:var(--text);}
+  .col-doc .scroll{flex:1;overflow-y:auto;min-height:0;padding:6px 0;}
+  .doc{padding:9px 16px;font-size:13px;color:var(--text-2);cursor:pointer;border-left:2px solid transparent;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s;}
+  .doc:hover{background:var(--bg-fill);}
+  .doc.on{background:var(--brand-bg);border-left-color:var(--brand);color:var(--brand);font-weight:500;}
+  .col-doc .foot{padding:12px 16px;border-top:1px solid var(--line-2);display:flex;flex-direction:column;gap:8px;}
+  .col-doc .foot button{width:100%;}
+
+  /* 中：文档正文 */
+  .col-body{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);}
+  .col-body .pane-head .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .editor{flex:1;min-height:0;padding:16px;display:flex;}
+  #doc-body{flex:1;width:100%;resize:none;border:1px solid var(--line-2);border-radius:var(--radius);
+    padding:16px 18px;font-family:inherit;font-size:13px;line-height:1.9;color:var(--text);
+    background:var(--bg);outline:none;}
+  #doc-body:focus{border-color:var(--brand-border);box-shadow:0 0 0 2px rgba(24,144,255,.08);}
+
+  /* 右：调试面板 */
+  .col-debug{width:400px;flex:0 0 400px;background:var(--bg);border-left:1px solid var(--line-2);
+    display:flex;flex-direction:column;min-height:0;}
+  .col-debug .scroll{flex:1;overflow-y:auto;min-height:0;}
+  .sec-t{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;
+    font-size:12px;color:var(--text-3);}
+  .badge{font-size:11px;color:var(--text-2);background:var(--bg-fill);
+    border:1px solid var(--line-2);border-radius:var(--radius);padding:0 6px;line-height:18px;}
+  #thread{height:240px;background:var(--bg-page);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);}
+  .ask{padding:12px 16px;display:flex;gap:8px;border-bottom:1px solid var(--line-2);}
+  .ask .ant-input{flex:1;}
+  #ans-notice:empty{display:none;}
+  #ans-notice{margin:0 16px 12px;padding:8px 10px;font-size:12px;line-height:1.7;color:var(--text-2);
+    background:var(--bg-page);border:1px solid var(--line-2);border-radius:var(--radius);}
+
+  #hits{padding:0 16px 18px;}
+  .hit{padding:10px 0;border-bottom:1px solid var(--line-2);}
+  .hit:last-child{border-bottom:0;}
+  .hit .ht{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px;}
+  .hit .ht b{font-size:12px;font-weight:500;color:var(--text);}
+  .hit .ht span{font-size:11px;color:var(--text-3);flex:none;}
+  .hit .hx{font-size:12px;color:var(--text-3);line-height:1.7;}
+
+  #prompt{margin:0;padding:0 16px 22px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:11px;line-height:1.8;color:var(--text-2);white-space:pre-wrap;word-break:break-word;}
+  #hits:empty::before{content:'还没查过';display:block;padding:0 16px 16px;font-size:12px;color:var(--text-3);}
+  #qalog{padding:0 16px 22px;}
+  #qalog .row{display:flex;gap:10px;padding:6px 0;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--line-2);}
+  #qalog .row:last-child{border-bottom:0;}
+  #qalog .row i{flex:none;font-style:normal;color:var(--text-3);}
+  #qalog .row b{font-weight:400;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #qalog:empty::before{content:'还没有记录';display:block;font-size:12px;color:var(--text-3);}
+  #prompt:empty::before{content:'还没拼出来';color:var(--text-3);}
+  .sec-split{height:1px;background:var(--line-2);margin:18px 0 0;}
+
+  @media (max-width:1280px){
+    .col-debug{width:340px;flex-basis:340px;}
+  }
+  @media (max-width:1080px){
+    .col-doc{width:200px;flex-basis:200px;}
+    .col-debug{width:300px;flex-basis:300px;}
+  }
+</style>
+</head>
+<body data-view="admin">
+
+<header class="top">
+  <span class="brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.3-.6L4 20.5l1.3-4A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"/></svg>
+    云策
+  </span>
+  <span class="div"></span>
+  <span class="cur">资料维护</span>
+  <div class="right">
+    <span class="db" id="db-state">数据：—</span>
+    <span class="stat"><i></i><span id="sys-state">正在连</span></span>
+  </div>
+</header>
+
+<div class="main">
+
+  <aside class="col-doc">
+    <div class="pane-head">资料</div>
+    <div class="scroll" id="doclist"></div>
+    <div class="foot">
+      <input type="file" id="up" accept=".md,.txt,.pdf,.docx,.xlsx" style="display:none" onchange="uploadDoc(this)">
+      <button class="ant-btn ant-btn-primary" onclick="document.getElementById('up').click()">上传文档</button>
+      <button class="ant-btn" onclick="resetAllDocs()">还原初始资料</button>
+    </div>
+  </aside>
+
+  <section class="col-body">
+    <div class="pane-head">
+      <span class="t" id="doc-title">从左边挑一份</span>
+      <button class="ant-btn ant-btn-primary" onclick="saveCurrentDoc()">存下来</button>
+    </div>
+    <div class="editor">
+      <textarea id="doc-body" spellcheck="false" placeholder="点左边的资料，正文显示在这里。改完按右上角存下来。"></textarea>
+    </div>
+  </section>
+
+  <aside class="col-debug">
+    <div class="pane-head"><span>试问</span><span class="badge" id="ans-badge">未开始</span></div>
+    <div class="scroll">
+      <div id="thread"></div>
+      <div class="ask">
+        <input id="q" class="ant-input" placeholder="问点什么，按回车" onkeydown="if(event.key==='Enter')run()">
+        <button id="btn" class="ant-btn ant-btn-primary" onclick="run()">问</button>
+      </div>
+      <div id="ans-notice"></div>
+
+      <div class="sec-split"></div>
+      <div class="sec-t"><span>查到的段落</span><span id="hit-note"></span></div>
+      <div id="hits"></div>
+
+      <div class="sec-split"></div>
+      <div class="sec-t"><span>拼好的话</span></div>
+      <pre id="prompt"></pre>
+
+      <div class="sec-split"></div>
+      <div class="sec-t"><span>最近问答</span><span id="qa-count"></span></div>
+      <div id="qalog"></div>
+    </div>
+  </aside>
+
+</div>
+
+<div id="toast"></div>
+<script src="assets/app.js"></script>
+</body>
+</html>
