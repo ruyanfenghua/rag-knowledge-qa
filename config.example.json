@@ -1,0 +1,28 @@
+{
+  "port": 8900,
+  "chat": {
+    "base": "https://token.sensenova.cn/v1",
+    "model": "sensenova-6.8-flash-lite",
+    "key": ""
+  },
+  "emb": {
+    "base": "https://api.siliconflow.cn/v1",
+    "model": "BAAI/bge-m3",
+    "key": ""
+  },
+  "fallback": {
+    "base": "",
+    "model": "",
+    "key": ""
+  },
+  "db": {
+    "type": "sqlite",
+    "mysql": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "user": "root",
+      "password": "",
+      "database": "yunce"
+    }
+  }
+}

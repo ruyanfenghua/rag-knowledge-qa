@@ -1,0 +1,84 @@
+/* 全站唯一色板：取自 Ant Design 默认主题，三页共用，不另造颜色。
+   主色 #1890ff，文字 #262626 / #595959 / #8c8c8c，边框 #d9d9d9 / #f0f0f0，背景 #ffffff / #fafafa。 */
+:root{
+  --brand:#1890ff;
+  --brand-hover:#40a9ff;
+  --brand-active:#096dd9;
+  --brand-bg:#e6f7ff;
+  --brand-border:#91d5ff;
+  --ok:#52c41a;
+  --warn:#faad14;
+  --err:#ff4d4f;
+  --text:#262626;
+  --text-2:#595959;
+  --text-3:#8c8c8c;
+  --line:#d9d9d9;
+  --line-2:#f0f0f0;
+  --bg:#ffffff;
+  --bg-page:#fafafa;
+  --bg-fill:#f5f5f5;
+  --radius:2px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px;
+  line-height:1.5715;
+  color:var(--text);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* 消息区：对方白底细边，自己蓝底，统一 2px 圆角 */
+#thread{overflow-y:auto;padding:16px;background:var(--bg);}
+.sysline{text-align:center;color:var(--text-3);font-size:12px;padding:10px 0;}
+.msg{display:flex;margin:12px 0;}
+.msg.me{justify-content:flex-end;}
+.msg .bub{max-width:78%;}
+.msg .say{
+  background:var(--bg);
+  border:1px solid var(--line-2);
+  padding:9px 12px;
+  border-radius:var(--radius);
+  line-height:1.7;
+  font-size:13px;
+  color:var(--text);
+  word-break:break-word;
+}
+.msg.me .say{background:var(--brand);border-color:var(--brand);color:#fff;}
+.msg .t{font-size:11px;color:var(--text-3);margin-top:4px;}
+.msg.me .t{text-align:right;}
+
+/* 表格数据行：两列对齐，不再挤成一坨 */
+.msg .kvt{display:block;font-size:12px;color:var(--text-3);margin:2px 0 6px;}
+.msg .kv{display:flex;justify-content:space-between;gap:14px;padding:3px 0;font-size:12.5px;line-height:1.7;}
+.msg .kv i{font-style:normal;color:var(--text-3);flex:none;}
+.msg .kv b{font-weight:400;color:var(--text);text-align:right;}
+.msg.me .kvt{color:rgba(255,255,255,.65);}
+.msg.me .kv i{color:rgba(255,255,255,.65);}
+.msg.me .kv b{color:#fff;}
+
+/* 对方正在输入 */
+.typing{display:inline-flex;gap:3px;padding:2px 0;}
+.typing i{width:4px;height:4px;border-radius:50%;background:var(--text-3);animation:blink 1.2s infinite;}
+.typing i:nth-child(2){animation-delay:.2s;}
+.typing i:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+
+/* 轻提示 */
+#toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--text);color:#fff;
+  padding:8px 16px;border-radius:var(--radius);
+  font-size:13px;z-index:9999;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* 通用细分割线 */
+.hr{height:1px;background:var(--line-2);border:0;margin:0;}

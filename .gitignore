@@ -1,0 +1,5 @@
+config.json
+vectors.cache.json
+__pycache__/
+*.pyc
+data.db
